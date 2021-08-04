@@ -3,6 +3,6 @@ public class Hello {
 	public static void main(String[] args) {
 		System.out.println("Hello");
 		System.out.println("中文");
-		System.out.println("Spring");
+		System.out.println("Spring-00000000000000");
 	}
 }
