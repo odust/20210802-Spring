@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:p="http://www.springframework.org/schema/p" xmlns:util="http://www.springframework.org/schema/util"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+	<!--以下clazz4那邊,若Clazz裏面未覆寫equals(),將被Set視為不同-->
+	<bean id="clazz1" class="com.study.spring.case02.Clazz" p:id="501" p:name="Program" p:credit="3"/>
+	<bean id="clazz4" class="com.study.spring.case02.Clazz" p:id="501" p:name="Program" p:credit="3"/>
+	<bean id="clazz2" class="com.study.spring.case02.Clazz" p:id="502" p:name="Math" p:credit="2"/>
+	<bean id="clazz3" class="com.study.spring.case02.Clazz" p:id="503" p:name="Eng" p:credit="1"/>
+	<!--以下scope="singleton"僅在首次取用時run一次建構式與init(),且僅僅singleton時會呼叫destroy()-->
+	<!--singleton較常用,prototype少用,不然一直建立新物件耗光系統資源-->
+	<bean id="student1" scope="singleton"
+			class="com.study.spring.case02.Student"
+			p:id="1001" p:name="John"
+			init-method="init"
+			destroy-method="destroy"><!--若沒寫參數init-method與destroy-method,則Student的init()與destroy()不會run-->
+		<property name="clazzs">
+			<set>
+				<ref bean="clazz1"/>
+				<ref bean="clazz4"/>
+				<ref bean="clazz3"/>
+			</set>
+		</property>
+	</bean>
+
+	<bean id="student2" scope="singleton"
+			class="com.study.spring.case02.Student"
+			p:id="1002" p:name="Mary"
+			init-method="init"
+			destroy-method="destroy">
+		<property name="clazzs">
+			<set>
+				<ref bean="clazz2"/>
+				<ref bean="clazz3"/>
+			</set>
+		</property>
+	</bean>
+
+	<bean id="student3" scope="singleton"
+			class="com.study.spring.case02.Student"
+			p:id="1003" p:name="Helen"
+			init-method="init"
+			destroy-method="destroy">
+		<property name="clazzs">
+			<set>
+				<ref bean="clazz1"/>
+				<ref bean="clazz2"/>
+				<ref bean="clazz3"/>
+			</set>
+		</property>
+	</bean>
+
+	<bean id="teacher1"
+			class="com.study.spring.case02.Teacher"
+			p:id="1" p:name="Bob">
+		<property name="students">
+			<set>
+				<ref bean="student1"/>
+				<ref bean="student2"/>
+				<ref bean="student3"/>
+			</set>
+		</property>
+		<property name="subjects">
+			<list><!--以下value標籤建議改用ref標籤,但Teacher的欄位List<String>須配合改為List<Clazz>-->
+					<!--然後這邊下面teacher2的util:list的value標籤也要跟著改-->
+				<value>Program</value> <value>Math</value> <value>Eng</value> <value>Chi</value>
+			</list>
+		</property>
+		<property name="salary">
+			<map>
+				<entry key="base">
+					<value>50000</value><!--此處不可用50_000,無法轉換-->
+				</entry>
+				<entry key="addition">
+					<value>20000</value><!--此處不可用20_000,無法轉換-->
+				</entry>
+			</map>
+		</property>
+	</bean>
+	<!--以下採引用模式(參照/參考),util:xxx一口氣設定teacher2~3的Collection型欄位.＊teacher1不受影響-->
+	<bean id="teacher2" class="com.study.spring.case02.Teacher"
+			p:id="2" p:name="Jo" p:students-ref="students" p:subjects-ref="subjects" p:salary-ref="salary"/>
+	<util:set id="students">
+		<ref bean="student1"/>
+		<ref bean="student3"/>
+	</util:set>
+	<util:list id="subjects">
+		<value>Java</value> <value>VB</value><!--VB:Visual Basic-->
+	</util:list>
+	<util:map id="salary">
+		<entry>
+			<key>
+				<value>base</value>
+			</key>
+			<value>60000</value>
+		</entry>
+		<entry>
+			<key>
+				<value>addition</value>
+			</key>
+			<value>25000</value>
+		</entry>
+	</util:map>
+	<!--以下外部設定-->
+	<!--載入外部資源-->
+<!--	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="user.properties"/>
+	</bean>-->
+	<context:property-placeholder location="user.properties"/><!--這個較方便(記得點進Namespace標籤加入)-->
+	<!--以下teacher3的Collection型欄位會共用上面util:xxx引用模式(參照/參考)-->
+	<bean id="teacher3" class="com.study.spring.case02.Teacher"
+		p:id="${tch3.id}" p:name="${tch3.name}"
+		p:students-ref="students" p:subjects-ref="subjects" p:salary-ref="salary"/>
+
+	<!--繼這裏的設定,在CarFactory.java繼續Car物件的動態設定-->
+	<bean id="carFactory"
+			class="com.study.spring.case02.CarFactory"/>
+</beans>
